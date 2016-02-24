@@ -147,7 +147,7 @@ def build_weighted_influence_graph(json_data):
     h_dict=Counter(h_list)
     
     #compute hashtag rarities
-    h_dict_rar={h:(v/sum(h_dict.values())) for h,v in h_dict}
+    h_dict_rar={h:(h_dict[v]/sum(h_dict.values())) for h in h_dict}
     
     #normalization of followers
     max_f=max([n[1]['followers'] for n in twitter_graph.nodes_iter(data=True)])
