@@ -130,11 +130,9 @@ def compute_overlaps(scores_m, top_percentage):
         #picking top X%
         scores[m]=set([n for n, s in scores[m][0: (l*top_percentage/100)]])
         
-    print(scores)
     
     for s1, s2 in itertools.combinations(scores.items(),2):
         corrs.append((s1[0],s2[0],100*(float(len(s1[1].intersection(s2[1])))/float(l))))
     
-    print(corrs)
     
     return corrs

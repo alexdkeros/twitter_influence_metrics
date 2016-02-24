@@ -4,6 +4,7 @@ Created on Feb 23, 2016
 @author: ak
 '''
 import networkx as nx
+import operator
 from collections import Counter
 
 def build_mention_graph(json_data):
@@ -81,10 +82,11 @@ def build_local_influence_graphs(json_data, hashtag_lower_t=None):
             
     h_dict=Counter(h_list)
     
+    
     #filter out low hashtag counts, if required
     if hashtag_lower_t:
         h_dict={k:h_dict[k] for k in h_dict if h_dict[k]>=hashtag_lower_t}
-        
+       
     topic_subgraphs={}
     
     #form local hashtag networks

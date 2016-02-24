@@ -21,6 +21,27 @@ def show_best_scores(scores_dict,top=5):
     for i in range(min(top,len(scores))):
         print('Name: %s Score: %f'%(scores[i][0],scores[i][1]))
 
+def show_best_score_tweets(G, scores, top=5):
+    """View tweets of top scorers
+    
+    Parameters
+    ----------
+    G: networkx graph
+    scores: list of ('name', score) tuples
+    top: int, optional
+        top x users to print
+    """
+    s_s=[t for t in sorted(scores, key=operator.itemgetter(1), reverse=True)[0:top]]
+    
+    for n,v in s_s:
+        print('\n User: %s Score: %f'%(n,v))
+        print('Hashtags Used:')
+        print(G.node[n]['hashtags'])
+        print('Tweets:')
+        for t in G.node[n]['tweets'].values():
+            print(unicode(t['text'],errors='ignore'))
+        
+        
 
 def show_corr_results(corrs):
     """View correlation between methods
