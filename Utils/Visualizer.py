@@ -36,10 +36,12 @@ def show_best_score_tweets(G, scores, top=5):
     for n,v in s_s:
         print('\n User: %s Score: %f'%(n,v))
         print('Hashtags Used:')
-        print(G.node[n]['hashtags'])
+        if 'hashtags' in G.node[n]:
+            print(G.node[n]['hashtags'])
         print('Tweets:')
-        for t in G.node[n]['tweets'].values():
-            print(unicode(t['text'],errors='ignore'))
+        if 'tweets' in G.node[n]:
+            for t in G.node[n]['tweets'].values():
+                print(t['text'].encode('utf-8'))
         
         
 

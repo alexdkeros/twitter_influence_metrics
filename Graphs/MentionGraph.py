@@ -6,6 +6,7 @@ Created on Feb 23, 2016
 import networkx as nx
 import operator
 from collections import Counter
+from dateutil.parser import parse
 
 def build_mention_graph(json_data):
     """Builts directed graph based on twitter mentions
@@ -95,5 +96,76 @@ def build_local_influence_graphs(json_data, hashtag_lower_t=None):
         topic_subgraphs[k]=twitter_graph.subgraph([n for n,a in nodes])
     
     return twitter_graph, topic_subgraphs
+    
+    
+
+
+
+def build_weighted_influence_graph(json_data):
+    """Builds weighted directed graph based on twitter mentions, followers and hashtags
+    
+    weights are computed in terms of followers and hashtag percolation
+    
+    Parameters
+    ----------
+    json_data: list of json dictionaries containing twitter data
+    
+    Returns
+    -------
+    twitter_graph: digraph
+    """
+    
+    twitter_graph=build_mention_graph(json_data)
+    
+    #extract hashtags
+    h_list=[]
+    for tweet in json_data:
+        twitter_graph.node[tweet['user']['screen_name']]['hashtags']=set()
+        twitter_graph.node[tweet['user']['screen_name']]['hashtag_timeline']={}
+        twitter_graph.node[tweet['user']['screen_name']]['followers']=tweet['user']['followers_count']
+        
+        if tweet['entities']['hashtags']:
+            h_list.extend([h['text'] for h in tweet['entities']['hashtags']])
+            
+            #add hashtag attribute to node
+            if 'hashtags' in twitter_graph.node[tweet['user']['screen_name']]:
+                twitter_graph.node[tweet['user']['screen_name']]['hashtags']=twitter_graph.node[tweet['user']['screen_name']]['hashtags'].union(set([h['text'] for h in tweet['entities']['hashtags']]))                
+            else:
+                twitter_graph.node[tweet['user']['screen_name']]['hashtags']=set([h['text'] for h in tweet['entities']['hashtags']])
+            
+            #add hashtag_timeline attribute to node
+            if 'hashtag_timeline' in twitter_graph.node[tweet['user']['screen_name']]:
+                for h in tweet['entities']['hashtags']:
+                    if h['text'] in twitter_graph.node[tweet['user']['screen_name']]['hashtag_timeline']:
+                        twitter_graph.node[tweet['user']['screen_name']]['hashtag_timeline'][h['text']].append(parse(tweet['created_at']))
+                    else:
+                        twitter_graph.node[tweet['user']['screen_name']]['hashtag_timeline'][h['text']]=[parse(tweet['created_at'])]               
+            else:
+                twitter_graph.node[tweet['user']['screen_name']]['hashtag_timeline']={h['text']:[parse(tweet['created_at'])]}
+    
+    
+    h_dict=Counter(h_list)
+    
+    #compute hashtag rarities
+    h_dict_rar={h:(v/sum(h_dict.values())) for h,v in h_dict}
+    
+    #normalization of followers
+    max_f=max([n[1]['followers'] for n in twitter_graph.nodes_iter(data=True)])
+    min_f=min([n[1]['followers'] for n in twitter_graph.nodes_iter(data=True)])
+    
+    #add edge weights
+    for i,j in twitter_graph.edges_iter():
+        w_f=0
+        w_h=0
+        if 'followers' in twitter_graph.node[j]:
+            w_f=(twitter_graph.node[j]['followers']-min_f)/(max_f-min_f)
+        if ('hashtag_timeline' in twitter_graph.node[i]) and ('hashtag_timeline' in twitter_graph.node[j]):
+            for h in set(twitter_graph.node[i]['hashtag_timeline'].keys()).intersection(twitter_graph.node[j]['hashtag_timeline'].keys()):
+                if any(min(twitter_graph.node[j]['hashtag_timeline'][h])<v for v in twitter_graph.node[i]['hashtag_timeline'][h]):
+                    w_h+=h_dict_rar(h)
+                    
+        twitter_graph[i][j]['weight']=w_f+w_h
+
+    return twitter_graph
     
     
