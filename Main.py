@@ -13,7 +13,7 @@ sys.path.append('/home/ak/git/demokritos_entry_project/')
 
 
 import networkx as nx
-from TwitterAnalyser import *, main_local_networks
+from TwitterAnalyser import *
 from CustomRankings.UserAttributeRankings import *
 
 if __name__=='__main__':

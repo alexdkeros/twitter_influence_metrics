@@ -53,7 +53,7 @@ def main_simple(filename, centralities_methods, resultsFolder=None,save=True):
     
     twitter_graph=build_mention_graph(json_data)
      
-    d={'whole_graph':twitter_graph})
+    d={'whole_graph':twitter_graph}
      
     #graph specific results {'graph':{res_dict}}
     g_results={}
@@ -209,7 +209,7 @@ def main_weighted(filename, centralities_methods, resultsFolder=None,save=True):
     
     twitter_graph=build_weighted_influence_graph(json_data)
      
-    d={'weighted_graph':twitter_graph})
+    d={'weighted_graph':twitter_graph}
      
     #graph specific results {'graph':{res_dict}}
     g_results={}
