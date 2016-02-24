@@ -30,7 +30,7 @@ def follower_centrality(G):
     return nodes
 
 
-def centralities_euclidean_norm_centrality(G):
+def centralities_euclidean_norm_centrality(G, weight=None, distance=None):
     """Implementation of Euclidean norm of centralities as centrality measure
     
     Centrality measure is the Euclidean norm of the normalized Degree, Closeness and Betweenness centralities,
@@ -40,6 +40,10 @@ def centralities_euclidean_norm_centrality(G):
     ----------
     G: networkx graph
         graph representing social network
+    weight: string or None, optional
+        weight edge attribute for betweenness centrality
+    distance: string or Node, optional
+        distance edge attribute for closeness centrality
         
     Returns
     -------
@@ -64,11 +68,11 @@ def centralities_euclidean_norm_centrality(G):
     deg_dict={k:normalizing(v,deg_dict) for k,v in deg_dict.items()}
     
     #closeness centrality
-    clo_dict=nx.closeness_centrality(G)
+    clo_dict=nx.closeness_centrality(G, distance=distance)
     clo_dict={k:normalizing(v,clo_dict) for k,v in clo_dict.items()}
     
     #betweenness centrality
-    betw_dict=nx.betweenness_centrality(G)
+    betw_dict=nx.betweenness_centrality(G, weight=weight)
     betw_dict={k:normalizing(v,betw_dict) for k,v in betw_dict.items()}
     
     #euclidean norm
