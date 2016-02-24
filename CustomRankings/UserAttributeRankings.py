@@ -22,8 +22,10 @@ def follower_centrality(G):
     """
     nodes={}
     for n in G.nodes():
-        if G.node[n].values():
-            nodes[n]=G.node[n].values()[0]['user']['followers_count']
+        
+        if G.node[n]:
+            if ('tweets' in G.node[n]) and G.node[n]['tweets']:
+                nodes[n]=G.node[n]['tweets'].values()[0]['user']['followers_count']
         else:
             nodes[n]=-1
     
@@ -61,7 +63,7 @@ def centralities_euclidean_norm_centrality(G, weight=None, distance=None):
     #normalizing function
     #Parameters : x - value, di - dictionary
     #Returns : normalized value (x-min(di)) / (max(di)-min(di))
-    normalizing=lambda x,di: (x-min(di.values()))/(max(di.values())-min(di.values()))
+    normalizing=lambda x,di: ((x-min(di.values()))/(max(di.values())-min(di.values()))) if (max(di.values())-min(di.values()))!=0 else 0
 
     #degree centrality
     deg_dict=nx.in_degree_centrality(G)

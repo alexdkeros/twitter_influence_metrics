@@ -27,9 +27,11 @@ def build_mention_graph(json_data):
         
         #adding user as node, tweets as node attributes
         if tweet['user']['screen_name'] not in twitter_graph.nodes():
-            twitter_graph.add_node(tweet['user']['screen_name'], attr_dict={tweet['id']:tweet})
-        else:
-            twitter_graph.node[tweet['user']['screen_name']][tweet['id']]=tweet
+            twitter_graph.add_node(tweet['user']['screen_name'], attr_dict={'tweets':{tweet['id']:tweet}})
+        elif 'tweets' not in twitter_graph.node[tweet['user']['screen_name']]:
+            twitter_graph.node[tweet['user']['screen_name']]['tweets']={tweet['id']:tweet}
+        else:    
+            twitter_graph.node[tweet['user']['screen_name']]['tweets'][tweet['id']]=tweet
             
         #adding edges to nodes/users mentioned
         for mention in tweet['entities']['user_mentions']:

@@ -5,6 +5,9 @@ Created on Feb 23, 2016
 '''
 import operator
 import pickle
+import itertools
+import scipy.stats as stats
+from Utils.Visualizer import show_best_scores, show_corr_results
 
 def apply_centrality_algo(G, rankMethod, **kwargs):
     """Applies specified ranking computation method to graph
@@ -74,20 +77,64 @@ def compute_ranking(scores_dict):
     return rankings
 
 
-
-def show_best_scores(scores_dict,top=5):
-    """View top scores
+def compute_kendalltau_corellations(meth_rankings,printRes=True):
+    """Method for computing kendall tau corellations between different rankings
     
     Parameters
     ----------
-    scores_dict: dictionary
-        key - score enties
-    top: int, optional
-        top scores to print
-    """
-    scores=sorted(scores_dict.items(),key=operator.itemgetter(0))
-    scores=sorted(scores,key=operator.itemgetter(1),reverse=True)
+    meth_rankings: dictionary
+        dictionary {'method_name':ranking}
+    printRes: bool, optional
+        print correlations
     
-    for i in range(top):
-        print('Name: %s Score: %f'%(scores[i][0],scores[i][1]))
+    Returns
+    -------
+    corrs: list of tuples
+        [('method_name_1', 'method_name_2', correlation, p_value), ]
+    """
+    corrs=[]
+    for p in itertools.combinations(meth_rankings.items(), 2):
         
+        z,pv=stats.kendalltau(p[0][1], p[1][1])
+        
+        corrs.append((p[0][0], p[1][0],z,pv))
+    
+    if printRes==True:
+        show_corr_results(corrs)
+        
+    return corrs
+    
+def compute_overlaps(scores_m, top_percentage):
+    """Compute overlaps between top x% in scores
+    
+    Parameters
+    ----------
+    scores_m: dictionary of {'method_name':[('name', score),]}, scores must have same lengths
+    top_percentage : float
+        percentage
+    
+    Returns
+    -------
+    ovs: list of tuples
+        [('name_1', 'name_2', overlap_percent),]
+    """    
+    scores=scores_m
+    corrs=[]
+    l=min([len(s_v) for s_v in scores.values()])
+    
+    #sorting in descending order
+    for m in scores:
+        scores[m]=sorted(scores[m],key=operator.itemgetter(0))
+        scores[m]=sorted(scores[m],key=operator.itemgetter(1),reverse=True)
+        
+        #picking top X%
+        scores[m]=set([n for n, s in scores[m][0: (l*top_percentage/100)]])
+        
+    print(scores)
+    
+    for s1, s2 in itertools.combinations(scores.items(),2):
+        corrs.append((s1[0],s2[0],100*(float(len(s1[1].intersection(s2[1])))/float(l))))
+    
+    print(corrs)
+    
+    return corrs
