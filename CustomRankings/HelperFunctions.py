@@ -132,7 +132,7 @@ def compute_overlaps(scores_m, top_percentage):
         
     
     for s1, s2 in itertools.combinations(scores.items(),2):
-        corrs.append((s1[0],s2[0],100*(float(len(s1[1].intersection(s2[1])))/float(l))))
+        corrs.append((s1[0],s2[0],100*(float(len(s1[1].intersection(s2[1])))/float((l*top_percentage/100)))))
     
     
     return corrs

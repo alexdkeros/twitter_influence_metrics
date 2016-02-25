@@ -1,0 +1,538 @@
+%Analyzing Influence Metrics in Twitter
+%Demokritos entrance project
+%25 Feb 2016
+%Author: Alexandros Keros
+
+\documentclass{beamer}
+\usepackage{beamerthemesplit}
+\usepackage{bm}
+\usepackage{listings}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+
+\tikzset{
+  every overlay node/.style={
+    fill=white,rounded corners,anchor=north west,
+  },
+}
+% Usage:
+% \tikzoverlay at (-1cm,-5cm) {content};
+% or
+% \tikzoverlay[text width=5cm] at (-1cm,-5cm) {content};
+\def\tikzoverlay{%
+   \tikz[baseline,overlay]\node[every overlay node]
+}%
+
+\begin{document}
+\lstset{language=Python}
+\title{Analyzing Influence Metrics in Twitter}
+\author{Alexandros Dimitrios Keros}
+\date{\today}
+
+\frame{\titlepage}
+
+\section{Introduction}
+\frame{\frametitle{Introduction}
+\begin{itemize}
+\item \textbf{Today:}Social Networks redefine the way we communicate
+\begin{itemize}
+	\item Follow, Retweet, Like, Comment, poke, \#Hashtag
+\end{itemize}
+\item \textbf{Aim:} Grasp this new sociocultural phenomenon
+\item \textbf{Here:} \begin{enumerate}
+						\item Represented Twitter network via graph
+						\item Dived into local hashtag-based networks
+						\item Attempted to capture percolation
+						\item Applied well know centrality measures
+					\end{enumerate}
+\end{itemize}
+}
+
+\frame{\frametitle{Table of Contents}\tableofcontents[hideallsubsections]}
+
+\section{Theoretical Background}
+\frame{\frametitle{Theoretical Background}
+\begin{enumerate}
+\item Graphs
+\item Centrality measures
+\item Kendall Tau correlation
+\end{enumerate}
+}
+
+\subsection{Graphs}
+\frame{\frametitle{Graphs}
+\begin{columns}
+\begin{column}{5cm}
+\begin{itemize}
+\item[]$G=(V,E)$
+\item[]$|V| \text{~vertices}$
+\item[]$|E| \text{~edges}$
+\item Undirected Graphs
+\item Directed Graphs
+\item Weighted Graphs
+\end{itemize}
+\end{column}
+\begin{column}{5cm}
+\includegraphics[scale=0.27]{undirected_graph}\\
+\includegraphics[scale=0.17]{directed_graph}\\
+\includegraphics[scale=0.17]{weighted_graph}
+\end{column}
+\end{columns}
+}
+
+\subsection{Centrality Measures}
+\frame{\frametitle{Centrality Measures}
+\begin{enumerate}
+\item Degree Centrality
+\item Closeness Centrality
+\item Betweenness Centrality
+\item Eigenvector Centrality
+\item PageRank
+\end{enumerate}
+}
+
+\subsubsection{Degree Centrality}
+\frame{\frametitle{Degree Centrality}
+$$ C_D(v)=deg(v) $$
+\begin{center}
+\begin{itemize}
+\item number of nodes that can reach this node \emph{directly}
+\item focus on number of relations
+\item reveal local popularity
+\item \textit{Also}:in-degree centrality, out-degree centrality
+\end{itemize}
+\end{center}
+}
+
+\subsubsection{Closeness Centrality}
+\frame{\frametitle{Closeness Centrality}
+$$ C_C(v)=\frac{1}{\sum_y{d(v,y)}} $$
+\begin{center}
+\begin{itemize}
+\item how fast can a node reach \emph{everyone} in the network
+\item focus on actor proximity
+\item reveal communication capacity
+\item \textit{Also}:weighted closeness centrality
+\end{itemize}
+\end{center}
+}
+
+\subsubsection{Betweenness Centrality}
+\frame{\frametitle{Betweenness Centrality}
+$$ C_B(v)=\sum_{s\neq v\neq t \in V}{\frac{\sigma_{st}(v)}{\sigma_{st}}} $$
+\begin{center}
+\begin{itemize}
+\item likelihood of a node being the \emph{most direct route} between other nodes
+\item focus on intermediary actors
+\item reveal brokers and privileged actors in information flow
+\item \textit{Also}:weighted betweenness centrality
+\end{itemize}
+\end{center}
+}
+
+\subsubsection{Eigenvector Centrality}
+\frame{\frametitle{Eigenvector Centrality}
+$$ \bm{Ax}=\bm{\lambda x} $$
+\begin{center}
+\begin{itemize}
+\item connection to \emph{other well connected} nodes
+\item focus on connections of neighbors
+\item reveal well connected actors
+\item \textit{Also}:weighted eigenvector centrality
+\end{itemize}
+\end{center}
+}
+
+\subsubsection{Pagerank}
+\frame{\frametitle{Pagerank}
+$$ PR(v)=\frac{1-d}{N}+d*\sum_{u\in B_v}{\frac{PR(u)}{L(u)}} \\
+d\text{:damping factor}\\
+N\text{:number of nodes}\\
+L(u)\text{:outbound links of node u}\\
+B(u)\text{:set of pages linking to u}$$
+\begin{center}
+\begin{itemize}
+\item \emph{eigenvector centrality variant}
+\item count number and quality of links to a page to determine rough importance
+\end{itemize}
+\end{center}
+}
+
+\subsection{Kendall Tau correlation}
+\frame{\frametitle{Kendall Tau}
+$$\tau=\frac{C-D}{C+D}=\frac{C-D}{\frac{n*(n-1)}{2}}\\
+C\text{:concordant pairs}\\
+D\text{:discordant pairs}\\
+n\text{:sample size}$$
+\begin{center}
+\begin{itemize}
+\item non-parametric measure of correlation between ranked variables
+\item probability of difference of the concordant pairs and the discordant pairs
+\item \emph{p-value}: probability of receiving observed results when \textit{Null-Hypothesis} is true
+\item \textit{Also}:tau-b, tau-c handle ties
+\end{itemize}
+\end{center}
+}
+
+
+\section{Implementation}
+\frame{\frametitle{Implementation}
+\begin{itemize}
+\item Tools
+\item Graphs and Centrality measures
+\end{itemize}
+}
+
+\subsection{Tools}
+\frame{\frametitle{Tools}
+\begin{itemize}
+\item NetworkX\\
+%\begin{lstlisting}
+%import networkx as nx
+%\end{lstlisting}
+Implementations of centrality measures
+\item scipy.stats\\
+%\begin{lstlisting}
+%import scipy.stats as stats
+%\end{lstlisting}
+Kendall Tau Beta implementation
+\end{itemize}
+}
+
+\subsection{Graphs and Centrality measures}
+\subsubsection{Additional Centrality Measures}
+\frame{\frametitle{Additional Centrality Measures}
+\begin{itemize}
+\item Followers Centrality
+\item Centralities Euclidean Norm Centrality
+\end{itemize}
+}
+
+
+\frame{\frametitle{Followers Centrality}
+$$C_F(v)=followers(v)\\
+followers(v)\text{:followers of user v}$$
+\begin{center}
+\begin{itemize}
+\item Reveal popular actors
+\end{itemize}
+\end{center}
+}
+
+
+\frame{\frametitle{Centralities Euclidean Norm Centrality}
+\begin{align}
+C_{EN}=\sqrt{\overline{D_i}^2+\overline{C_i}^2+\overline{B_i}^2}\\
+\overline{D_i}=\frac{D_i-min(\{D_1...D_n\})}{max(\{D_1...D_n\})-min(\{D_1...D_n\})}\\
+\overline{C_i}=\frac{C_i-min(\{C_1...C_n\})}{max(\{C_1...C_n\})-min(\{C_1...C_n\})}\\
+\overline{B_i}=\frac{B_i-min(\{B_1...B_n\})}{max(\{B_1...B_n\})-min(\{B_1...B_n\})}
+\end{align}
+\begin{left}
+$$
+D_i\text{:degree centrality score of node i}\\
+C_i\text{:closeness centrality score of node i}\\
+B_i\text{:betweenness centrality score of node i}$$
+\end{left}
+}
+
+
+\frame{\frametitle{Centralities Euclidean Norm Centrality(Cont.)}
+\begin{center}
+\begin{itemize}
+\item Bridge gaps between centrality measures
+\item Capture both node position and local popularity
+\item Na Li; Gillet, D., "Identifying influential scholars in academic social media platforms," in Advances in Social Networks Analysis and Mining (ASONAM), 2013 IEEE/ACM International Conference on , vol., no., pp.608-614, 25-28 Aug.2013
+\end{itemize}
+\end{center}
+}
+
+
+\subsubsection{Simple Mentions Graph}
+\frame{\frametitle{Simple Mentions Graph}
+\begin{columns}
+\begin{column}{6cm}
+\begin{itemize}
+\item[] $G=(V,E)$
+\item[] $v\in V \text{~represents users}$
+\item[] $e\in E \text{~represents mentions}$
+\item unweighted directed graph
+\item Centrality measures applied:
+\begin{itemize}
+\item in-degree
+\item betweenness
+\item pagerank
+\item eigenvector
+\item followers
+\item centralities euclidean norm
+\end{itemize}
+\item \textbf{Aim}:Basic network representation
+\end{itemize}
+\end{column}
+\begin{column}{5cm}
+\includegraphics[scale=0.3]{simple_graph}
+\end{column}
+\end{columns}
+}
+
+
+\subsubsection{Local Networks Graph}
+\frame{\frametitle{Local Networks Graph}
+\begin{columns}
+\begin{column}{7cm}
+\begin{itemize}
+\item[] $G=(V,E)$
+\item[] $v\in V \text{~represents users}$
+\item[] $e\in E \text{~represents mentions}$
+\item unweighted directed graph
+\item Centrality measures applied \textbf{both globally and in subgraphs}:
+\begin{itemize}
+\item in-degree
+\item betweenness
+\item pagerank
+\item eigenvector
+\item followers
+\item centralities euclidean norm
+\end{itemize}
+\item \textbf{Aim}:Capture local, topic-specific influence of nodes
+\end{itemize}
+\end{column}
+\begin{column}{5cm}
+\includegraphics[scale=0.13]{local_networks_graph}
+\end{column}
+\end{columns}
+}
+
+\subsubsection{Weighted Graph}
+\frame{\frametitle{Weighted Graph}
+\begin{itemize}
+\item[] $G=(V,E)$
+\item[] $v\in V \text{~represents users}$
+\item[] $w_{ij}=wf_{j}+wh_{ij}+\epsilon$
+\item[] $wf_(j)=\frac{fl(j)-min(\{fl(n_1)...fl(n_n)\})}{max(\{fl(n_1)...fl(n_n)\})-min(\{fl(n_1)...fl(n_n)\})}$
+\item[] $wh_ij=\begin{cases}\frac{|h_k|}{|hashtags|},& \text{if j used}~h_k~\text{before i}\\
+    0,              & \text{otherwise}
+\end{cases}$
+\item[] $fl(v)\text{:followers of user v}$
+\item weighted directed graph 
+\item Centrality measures applied:
+\begin{itemize}
+\item weighted betweenness
+\item weighted eigenvector
+\item followers
+\end{itemize}
+\item \textbf{Aim}: Capture twitter specific popularity (followers, \#hastags) while simulating percolation
+\end{itemize}
+\tikzoverlay at (7.5cm,5.2cm){
+\includegraphics[scale=0.18]{weighted_hashtag_graph}
+}}
+
+\section{Results}
+\frame{\frametitle{Results}
+\begin{itemize}
+\item Experimental setting and Evaluation methods
+\item Results
+\end{itemize}
+}
+
+\subsection{Experimental setting and Evaluation methods}
+\frame{\frametitle{Experimental setting and Evaluation methods}
+\begin{itemize}
+\item Dataset: Twitter feed
+	\begin{itemize}
+		\item 23956 users
+		\item 26302 mentions
+		\item 26302 tweets
+	\end{itemize}
+\item Evaluation methods:
+	\begin{itemize}
+		\item Presenting top 5 scorers for each method
+		\item Kendall tau correlation
+		\item Computing overlap among 10% of scorers for each method
+	\end{itemize}
+\end{itemize}
+}
+
+\subsection{Results}
+\subsubsection{Simple Mentions Graph Results}
+\frame{\frametitle{Simple Mentions Graph Results - Top 5}
+\tikzoverlay at (-1.06cm,3cm){
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{In-degree} & \textbf{Betweenness} & \textbf{Pagerank}\\ 
+\hline
+(civicua, 0.049885) & (guardian, 3380.) &(civicua, 0.014)\\
+
+
+(RitaFerrer, 0.027552)& (FGMsilentscream, 1203.) &(Madonna, 0.008)\\
+
+
+(Madonna, 0.018076)& (Slate, 585.) &(eonline, 0.007)\\
+
+
+(guardian, 0.014527)& (pitchforkmedia, 499.) &(KyivPost, 0.006)\\
+
+
+(cnnbrk, 0.014110)& (daraobriain, 484.) &(RitaFerrer, 0.006)\\
+\hline
+\textbf{Eigenvector} & \textbf{Followers} & \textbf{Cent.Euc.Norm}\\
+\hline
+(BendyGirl, 0.699456)&(CNN, 11913629.)&(guardian, 1.078)\\
+
+
+(sarasiobhan, 0.497058)&(jimmyfallon, 11703692.)&(civicua, 1.)\\
+
+
+(Finias, 0.390935)&(UberSoc, 11282590.)&(spaghetti\_soup, 1.)\\
+
+
+(Jules\_Clarke, 0.228532)&(nytimes, 11067872.)&(SociallySavv, 0.842)\\
+
+
+(SJaneBernal, 0.162403)&(iamdiddy, 9532092.)&(Derek\_Florey, 0.773)\\
+\hline
+\end{tabular}
+}
+}
+
+\frame{\frametitle{Simple Mentions Graph Results - Kendall Tau}
+\tikzoverlay at (-0.7cm,2cm){
+\small
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+ 				& \textbf{Betw} & \textbf{PR} & \textbf{Eig} & \textbf{Fol} &\textbf{CEN}\\
+\hline
+\textbf{InDeg}&	0.688986 & 0.978091 & 0.720850& -0.160175 & 0.013396\\				
+\hline
+\textbf{Betw}&				  & 0.674877	&	0.919920  &  0.057288& 0.171943\\			
+\hline
+\textbf{PR}& 				  &			& 0.712711 & -0.167771  & -0.000238(p-v:0.95)\\
+\hline
+\textbf{Eig}&				  &			&			& 0.019284 & 0.150419\\
+\hline
+\textbf{Fol}&				  &			&			&			&0.206929\\
+\hline
+\end{tabular}
+}
+}
+
+\frame{\frametitle{Simple Mentions Graph Results - Overlaps}
+\tikzoverlay at (0.5cm,2cm){
+\small
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+ 				& \textbf{Betw} & \textbf{PR} & \textbf{Eig} & \textbf{Fol} &\textbf{CEN}\\
+\hline
+\textbf{InDeg}&	30.03\% & 84.43\% & 70.46\% & 13.32\% & 0.79\%\\				
+\hline
+\textbf{Betw}&				  & 20.12\%	&	60.87\%  &  2.10\% & 1.56\%\\			
+\hline
+\textbf{PR}& 				  &			& 25.45\% & 1.45\%  & 0.71\%\\
+\hline
+\textbf{Eig}&				  &			&			& 0.54\% &10.45\%\\
+\hline
+\textbf{Fol}&				  &			&			&			&15.46\%\\
+\hline
+\end{tabular}
+}
+}
+
+
+\subsubsection{Local Network Graph Results}
+\frame{\frametitle{Local Network Graph Results - Top for 3 most frequent hashtags}
+\tikzoverlay at (0.5cm,2cm){
+\small
+\begin{tabular}{|c|c|c|c|}
+\hline
+					&\textbf{In-degree} & \textbf{Betweenness} & \textbf{Pagerank}\\ 
+\hline
+\textbf{Ukraine}	&(RT_com,0.042381) &	(Steiner1776,4.) & (KyivPost,0.110901)\\
+\hline
+\textbf{Venezuela} &(SIGUEMEPRIMERO,0.051969)& (1000riot,0.0) & (SIGUEMEPRIMERO,0.039474)\\
+\hline
+\textbf{euromaidan} &(SIGUEMEPRIMERO,0.051969)&(1000riot,0.0)& (SIGUEMEPRIMERO,0.039530)\\
+\hline
+					&\textbf{Eigenvector} & \textbf{Followers} & \textbf{Cent.Euc.Norm}\\
+\hline
+\textbf{Ukraine}  & (guidestone33,0.809016) & (RT_com,608697.) & (Steiner1776,1.020915)\\
+\hline
+\textbf{Venezuela} & (hernandezihf,1.)	&	(Zapata_zos,466705.) & ( Alemolina92, 1.0)\\
+\hline
+\textbf{euromaidan} &(hernandezihf,1.) &  (Zapata_zos ,466705.) & (Alemolina92,1.0)\\
+\hline
+\end{tabular}
+}
+}
+
+\frame{\frametitle{Local Network Graph Results - Kendall Tau (extreme values)}
+\begin{itemize}
+\item Ukraine:
+\begin{itemize}
+	\item max: in degree - pagerank 0.999284
+	\item min: betweenness - follower 0.038063
+\end{itemize}
+\item Venezuela:
+\begin{itemize}
+	\item max: in degree - pagerank 0.999938
+	\item min: eigenvector - follower 0.038063
+\end{itemize}
+\item euromaidan:
+\begin{itemize}
+	\item max: in degree - pagerank 0.999936
+	\item min: eigenvector - follower 0.049391
+\end{itemize}
+\end{itemize}
+}
+
+
+\subsubsection{Weighted Graph Results}
+\frame{\frametitle{Weighted Graph Results - Top 5}
+\tikzoverlay at (-1.2cm,1.5cm){
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{w.Betweenness} &  \textbf{w.Eigenvector} & \textbf{Followers} \\
+\hline
+(guardian ,3380.)&(BendyGirl, 0.699456)&(CNN, 11913629.)\\
+
+(FGMsilentscream ,1203.)&(sarasiobhan, 0.497058)&(jimmyfallon, 11703692.)\\
+
+(Slate ,585.)&(Finias, 0.390935)&(UberSoc, 11282590.)\\
+
+(pitchforkmedia ,499.)&(Jules_Clarke, 0.228532)&(nytimes, 11067872.)\\
+
+(daraobriain ,484.)&(SJaneBernal, 0.162403)&(iamdiddy, 9532092.)\\
+\hline
+\end{tabular}
+}
+}
+
+\frame{\frametitle{Weighted Graph Results - Kendall Tau \& Overlaps}
+\tikzoverlay at (1.3cm,1.3cm){
+\begin{tabular}{|c|c|c|}
+\hline
+ 				&  \textbf{Eig} & \textbf{Fol} \\
+\hline
+\textbf{Betw}&	 0.919920,85.87\% & 0.057288,1.10\% \\		
+\hline
+\textbf{Eig}&				&0.019284,0.79\%\\	
+\hline
+\end{tabular}
+}
+}
+
+\section{Conclusions}
+\frame{\frametitle{Conclusions}
+\begin{itemize}
+\item Different centrality methods reveal a different aspect of the network
+\item Network representation is important
+\end{itemize}
+}
+\section{Future Work}
+\frame{\frametitle{Future Work}
+\begin{itemize}
+\item Topic extraction (Latent Dirichlet Allocation e.t.c)
+\item Percolation simulation and centrality (i.e. take network evolution into account)
+\item More sophisticated network representation (Hypergraphs)
+\item Influence sources are often subjective
+\end{itemize}
+}
+\end{document}

@@ -101,7 +101,7 @@ def build_local_influence_graphs(json_data, hashtag_lower_t=None):
 
 
 
-def build_weighted_influence_graph(json_data):
+def build_weighted_influence_graph(json_data,min_edge_weight=0.1):
     """Builds weighted directed graph based on twitter mentions, followers and hashtags
     
     weights are computed in terms of followers and hashtag percolation
@@ -145,26 +145,31 @@ def build_weighted_influence_graph(json_data):
     
     
     h_dict=Counter(h_list)
-    
+    h_sum=sum(h_dict.values())
     #compute hashtag rarities
-    h_dict_rar={h:(h_dict[h]/sum(h_dict.values())) for h in h_dict}
+    h_dict_rar={h:(float(v)/float(h_sum)) for h,v in h_dict.iteritems()}
     
     #normalization of followers
-    max_f=max([n[1]['followers'] for n in twitter_graph.nodes_iter(data=True)])
-    min_f=min([n[1]['followers'] for n in twitter_graph.nodes_iter(data=True)])
+    max_f=max([di['followers'] if 'followers' in di else -1 for n,di in twitter_graph.nodes_iter(data=True)])
+    min_f=min([di['followers'] if 'followers' in di else max_f for n,di in twitter_graph.nodes_iter(data=True)])
     
     #add edge weights
     for i,j in twitter_graph.edges_iter():
-        w_f=0
-        w_h=0
+        w_f=0.0
+        w_h=0.0
         if 'followers' in twitter_graph.node[j]:
-            w_f=(twitter_graph.node[j]['followers']-min_f)/(max_f-min_f)
+            w_f=(float(twitter_graph.node[j]['followers'])-float(min_f))/(float(max_f)-float(min_f))
+            
         if ('hashtag_timeline' in twitter_graph.node[i]) and ('hashtag_timeline' in twitter_graph.node[j]):
+            
             for h in set(twitter_graph.node[i]['hashtag_timeline'].keys()).intersection(twitter_graph.node[j]['hashtag_timeline'].keys()):
                 if any(min(twitter_graph.node[j]['hashtag_timeline'][h])<v for v in twitter_graph.node[i]['hashtag_timeline'][h]):
-                    w_h+=h_dict_rar(h)
-                    
-        twitter_graph[i][j]['weight']=w_f+w_h
+                                        
+                    w_h+=h_dict_rar[h]
+        
+        twitter_graph[i][j]['follower_weight']=w_f
+        twitter_graph[i][j]['hashtag_weight']=w_h   
+        twitter_graph[i][j]['weight']=min_edge_weight+w_f+w_h
 
     return twitter_graph
     

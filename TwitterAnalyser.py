@@ -85,7 +85,7 @@ def main_simple(filename, centralities_methods, resultsFolder=None,save=True):
      
         res_dict['overlaps']=compute_overlaps({n:s[0] for n,s in res_dict['scores'].items()}, top_percentage=10)
 
-        g_results={g_desc:res_dict}
+        g_results[g_desc]=res_dict
         
     #save all
     if save:
@@ -128,7 +128,7 @@ def main_local_networks(filename, centralities_methods, resultsFolder=None,save=
     # building graph
     #===========================================================================
     
-    twitter_graph,hashtag_subgraphs=build_local_influence_graphs(json_data, hashtag_lower_t=400)
+    twitter_graph,hashtag_subgraphs=build_local_influence_graphs(json_data, hashtag_lower_t=600)
      
     d=hashtag_subgraphs.copy()
     d.update({'whole_graph':twitter_graph})
@@ -163,7 +163,7 @@ def main_local_networks(filename, centralities_methods, resultsFolder=None,save=
      
         res_dict['overlaps']=compute_overlaps({n:s[0] for n,s in res_dict['scores'].items()}, top_percentage=10)
 
-        g_results={g_desc:res_dict}
+        g_results[g_desc]=res_dict
         
     #save all
     if save:
@@ -241,7 +241,7 @@ def main_weighted(filename, centralities_methods, resultsFolder=None,save=True):
      
         res_dict['overlaps']=compute_overlaps({n:s[0] for n,s in res_dict['scores'].items()}, top_percentage=10)
 
-        g_results={g_desc:res_dict}
+        g_results[g_desc]=res_dict
         
     #save all
     if save:
